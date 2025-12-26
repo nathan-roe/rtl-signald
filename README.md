@@ -33,6 +33,16 @@ This is particularly useful for:
 
 ### Prerequisites
 
-Ensure you have the following installed on your Linux system:
-* `libudev-dev`
-* `rtl-433`
+* Ensure you have the following installed on your Linux system:
+  * `libudev-dev`
+  * `rtl-433`
+* RTL-SDR compatible USB dongle (e.g., RTL2832U-based device)
+
+### Usage
+
+Run the executable with a shell command argument to execute when the configured RF signal is detected:
+> rtl-signald '\<command>'
+ 
+Alternatively, you can manually change the `config.properties` file to configure the desired signal code and command:
+> command=echo "Remote Code Execution!"\
+> signal_code=123456789
