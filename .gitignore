@@ -1,0 +1,14 @@
+# CMake build directories
+cmake-build-*/
+
+# IDE
+.idea/
+
+# Build artifacts
+*.o
+*.so
+*.a
+*.out
+
+# Config (may contain user-specific settings)
+config.properties
