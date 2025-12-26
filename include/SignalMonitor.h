@@ -17,7 +17,6 @@ class SignalMonitor {
     FILE *m_pipe {};
     ConfigManager *m_config {};
     DeviceMonitor *m_device_monitor {};
-    std::chrono::steady_clock::time_point m_last_received_time;
     bool m_is_listening { };
 
     void define_signal_code_async(std::promise<const std::string_view&>& promise_obj);
@@ -26,7 +25,7 @@ public:
     explicit SignalMonitor(ConfigManager *config);
     ~SignalMonitor();
 
-    void run();
+    void run(const std::function<bool(std::string)>& callback);
 };
 
 

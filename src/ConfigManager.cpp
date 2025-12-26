@@ -32,12 +32,9 @@ ConfigManager::ConfigManager() {
         config_file.close();
     }
 
-    // Output config values to console
-    std::cout << "Configuration loaded from config.properties:\n";
-    std::cout << "  signal_code: " << config["signal_code"] << "\n";
-    std::cout << "  command: " << config["command"] << "\n";
     m_command = config["command"];
     m_signal_code = config["signal_code"];
+    std::cout << *this;
 }
 
 void ConfigManager::update_property(std::string_view property_name, std::string_view value) {
