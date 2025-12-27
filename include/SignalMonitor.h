@@ -1,5 +1,5 @@
 //
-// Created by nate on 12/24/25.
+// Created by Nathan Roe on 12/24/25.
 //
 
 #ifndef RTL_SIGNALD_SIGNALMONITOR_H
