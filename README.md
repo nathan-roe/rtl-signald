@@ -17,32 +17,77 @@ This is particularly useful for:
 *   **Hardware Monitoring**: Uses `libudev` to detect real-time USB "add" and "remove" events.
 *   **Interactive Training**: If no signal code is configured, the app enters a "learning mode" to help you identify and save the correct RF signal code from your device.
 *   **Debounced Execution**: Includes built-in signal debouncing to prevent a single button press from triggering multiple command executions.
-*   **Configuration Driven**: Manage signal codes and target commands via a simple `config.properties` file.
+*   **Configuration Driven**: Manage signal codes and target commands via a simple `rtlsignald.properties` file.
 
 ## Tech Stack
 
-*   **Language**: C++26
-*   **Build System**: CMake 4.1+.
+*   **Language**: C++23
+*   **Build System**: CMake
 *   **Dependencies**:
-  *   `libudev`: For monitoring system hardware events.
-  *   `librtlsdr`: For interfacing with RTL-SDR dongles.
-  *   `libusb-1.0`: For USB communication.
-  *   `rtl_433` (External tool): Must be installed and available in the system PATH.
+    *   `libudev`: For monitoring system hardware events.
+    *   `librtlsdr`: For interfacing with RTL-SDR dongles.
+    *   `libusb-1.0`: For USB communication.
+    *   `rtl_433` (External tool): Must be installed and available in the system PATH.
 
 ## Getting Started
 
 ### Prerequisites
 
-* Ensure you have the following installed on your Linux system:
-  * `libudev-dev`
-  * `rtl-433`
-* RTL-SDR compatible USB dongle (e.g., RTL2832U-based device)
+Before running the setup scripts, you must define several environment variables that dictate how the service and configuration are generated.
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `RTL_SIGNALD_CODE` | The RF signal code to listen for. | `12345678` |
+| `RTL_SIGNALD_PATH` | Full path to the `rtl-signald` binary. | `/usr/local/bin/rtl-signald` |
+| `RTL_SIGNALD_COMMAND` | The command to execute on signal detection. | `systemctl suspend` |
+| `RTL_USER` | The system user to run the service and own the config. | `pi` |
+| `RTL_GROUP` | The system group for the service. | `pi` |
+
+#### Automated Setup
+
+1.  Export the required environment variables (see table above).
+2.  Run the `setup.sh` script. This will:
+    *   Install `libudev-dev` and `rtl-433`.
+    *   Create the configuration file at `~/.config/rtlsignald.properties` with your specified signal code.
+    *   Set proper ownership for the configuration file.
+
+#### Manual Setup
+
+1.  Ensure you have the following installed:
+    *   `libudev-dev`
+    *   `rtl-433`
+2.  RTL-SDR compatible USB dongle (e.g., RTL2832U-based device).
+3.  Create the directory `mkdir -p ~/.config`.
+4.  Create `~/.config/rtlsignald.properties` with the following content:
+    ```properties
+    signal_code=YOUR_CODE_HERE
+    ```
 
 ### Usage
 
-Run the executable with a shell command argument to execute when the configured RF signal is detected:
-> rtl-signald '\<command>'
- 
-Alternatively, you can manually change the `config.properties` file to configure the desired signal code and command:
-> command=echo "Remote Code Execution!"\
-> signal_code=123456789
+Run the executable directly to test your configuration:
+> ./rtl-signald --command 'echo "Signal Received"'
+
+If no `signal_code` is found in the properties file, the application will enter "Learning Mode" to help you identify the code for your remote.
+
+### Running as a Daemon
+
+To run `rtl-signald` as a persistent background service (Systemd), use the provided `service.sh` script.
+
+1.  **Environment Variables**: Ensure `RTL_SIGNALD_PATH`, `RTL_SIGNALD_COMMAND`, `RTL_USER`, and `RTL_GROUP` are exported in your current shell.
+2.  **Installation**: Run `./service.sh`.
+    *   This script generates a Systemd unit file at `/etc/systemd/system/rtlsignald.service`.
+    *   It reloads the daemon, enables the service, and starts it.
+    *   The script will automatically tail the logs (`journalctl`) so you can verify the service started correctly.
+
+The service is configured to:
+*   Start after the network is available.
+*   Restart automatically on failure.
+*   Run with the `--require-code` flag to ensure the configuration file has a defined signal code. 
+
+To manage the service manually:
+```bash
+sudo systemctl start rtlsignald
+sudo systemctl stop rtlsignald
+sudo systemctl status rtlsignald
+```

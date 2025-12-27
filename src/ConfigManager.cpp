@@ -8,17 +8,33 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 #include <unordered_map>
 #include <vector>
+#include <pwd.h>
 
-#define PROPERTIES_FILE_PATH "../config.properties"
+#define PROPERTIES_FILE_PATH "/.config/rtlsignald.properties"
+
+std::string ConfigManager::get_config_path() {
+    const char* homedir = std::getenv("HOME");
+    if (!homedir) {
+        const uid_t uid = getuid(); // Get the effective user ID
+        if (const passwd *pw = getpwuid(uid); pw != nullptr) {
+            homedir = pw->pw_dir;
+        }
+    }
+    return std::string(homedir) + PROPERTIES_FILE_PATH;
+}
 
 ConfigManager::ConfigManager() {
     // Load configuration from config.properties
     std::unordered_map<std::string, std::string> config;
-    std::ifstream config_file(PROPERTIES_FILE_PATH);
+    const std::string config_file_path = get_config_path();
+    std::ifstream config_file(config_file_path);
     if (!config_file.is_open()) {
-        std::cerr << "Warning: Could not open config.properties file. Using default/empty configuration.\n";
+        std::cerr << "Warning: Could not open properties file at " << config_file_path << ". Using default/empty configuration.\n";
+    } else {
+        std::cout << "Using configuration file at: " << config_file_path << '\n';
     }
     if (config_file.is_open()) {
         std::string line;
@@ -41,8 +57,8 @@ void ConfigManager::update_property(std::string_view property_name, std::string_
     // Read all lines from file
     std::vector<std::string> lines;
     bool property_found = false;
-
-    if (std::ifstream config_file(PROPERTIES_FILE_PATH); config_file.is_open()) {
+    const std::string config_file_path = get_config_path();
+    if (std::ifstream config_file(config_file_path); config_file.is_open()) {
         std::string line;
         while (std::getline(config_file, line)) {
             if (!line.empty() && line[0] != '#') {
@@ -70,12 +86,13 @@ void ConfigManager::update_property(std::string_view property_name, std::string_
     }
 
     // Write all lines back to file
-    if (std::ofstream out_file(PROPERTIES_FILE_PATH); out_file.is_open()) {
+    std::cout << "Attempting to write to: " << config_file_path << '\n';
+    if (std::ofstream out_file(config_file_path); out_file.is_open()) {
         for (const auto &line: lines) {
             out_file << line << "\n";
         }
         out_file.close();
     } else {
-        std::cerr << "Error: Could not open config.properties file for writing.\n";
+        std::cerr << "Error: Could not open properties file for writing.\n";
     }
 }

@@ -12,6 +12,7 @@ class ConfigManager {
     std::string m_command {};
     std::string m_signal_code {};
     static void update_property(std::string_view property_name, std::string_view value);
+    static std::string get_config_path();
 public:
     explicit ConfigManager();
     [[nodiscard]] std::string_view getCommand() const { return m_command; }
@@ -27,7 +28,7 @@ public:
 };
 
 inline std::ostream& operator<<(std::ostream& os, const ConfigManager& config) {
-   os << "Configuration loaded from config.properties:\n"
+   os << "Configuration loaded from properties file:\n"
     << "  signal_code: " << config.getSignalCode().data() << "\n"
     << "  command: " << config.getCommand().data() << "\n";
     return os;

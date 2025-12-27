@@ -9,6 +9,3 @@ cmake-build-*/
 *.so
 *.a
 *.out
-
-# Config (may contain user-specific settings)
-config.properties

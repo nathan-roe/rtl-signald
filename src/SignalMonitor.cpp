@@ -38,6 +38,7 @@ void SignalMonitor::define_signal_code_async(std::promise<const std::string_view
             return true; // continue listening for signals
         }
     };
+    std::cout << "Starting signal listener\n";
     start_listener(callback);
 }
 
@@ -67,6 +68,7 @@ void SignalMonitor::start_listener(const std::function<bool(std::string)>& callb
 void SignalMonitor::run(const std::function<bool(std::string)>& callback) {
     std::promise<const std::string_view&> promise_obj {};
     if (m_config->getSignalCode().empty()) {
+        std::cout << "No signal code is defined. Entering interactive mode\n";
         define_signal_code_async(promise_obj);
         promise_obj.get_future().wait();
     }
